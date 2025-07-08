@@ -1,7 +1,0 @@
-{
-    "name": "action-vercel-deploy",
-    "main": "dist/index.js",
-    "scripts": {
-      "build": "echo ok"
-    }
-  }
