@@ -1,4 +1,4 @@
-name: "Vercel Deploy"
+name: "ZmicroVercel Deploy"
 description: "github action for vercel deploy"
 author: "Zero <GitHub: whatwewant>"
 branding:
