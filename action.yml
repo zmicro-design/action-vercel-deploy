@@ -80,3 +80,75 @@ runs:
         fi
 
         echo "preview-url=$url" >> $GITHUB_OUTPUT
+
+    - name: Comment PR
+      uses: actions/github-script@v7
+      with:
+        script: |
+          // Check if this is a pull request context
+          const isPR = context.eventName === 'pull_request' || 
+                      context.payload.pull_request !== undefined ||
+                      context.issue?.pull_request !== undefined
+          if (!isPR) {
+            console.log('Not a pull request context, skipping comment.')
+            return
+          }
+
+          // Get PR number
+          const prNumber = context.issue.number || 
+                          context.payload.pull_request?.number ||
+                          context.payload.number
+          if (!prNumber) {
+            console.log('Could not determine PR number, skipping comment.')
+            return
+          }
+
+          const previewUrl = '${{ steps.deploy.outputs.preview-url }}'
+
+          const commentIdentifier = '<!-- zmicro-design-action-vercel-deploy-comment -->'
+          const commentBody = `${commentIdentifier}
+          ## 🚀 Vercel Deployment
+
+          ✅ **Preview URL**: ${previewUrl}
+
+          👤 **Author**: \`${{ github.actor }}\`
+          📝 **Commit**: \`${{ github.sha }}\`
+          🌿 **Branch**: \`${{ github.head_ref || github.ref_name }}\`
+          ⏰ **Updated**: ${new Date().toLocaleString('en-US', { timeZone: 'UTC' })} UTC`
+
+          try {
+            // Get all comments for this PR
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber
+            })
+
+            // Find existing comment with our identifier
+            const existingComment = comments.find(comment => 
+              comment.body.includes(commentIdentifier)
+            )
+
+            if (existingComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existingComment.id,
+                body: commentBody
+              })
+              console.log(`Updated existing comment #${existingComment.id}`)
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: commentBody
+              })
+              console.log('Created new comment')
+            }
+          } catch (error) {
+            console.error('Failed to handle PR comment:', error.message)
+            // Don't fail the workflow if comment handling fails
+          }
