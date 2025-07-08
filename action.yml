@@ -47,22 +47,33 @@ runs:
         export VERCEL_ORG_ID=${{ inputs.org-id }}
         export VERCEL_PROJECT_ID=${{ inputs.project-id }}
 
+        LOG_INFO() {
+          echo -e "\033[32m[$(date)] $1\033[0m"
+        }
+
+        LOG_ERROR() {
+          echo -e "\033[31m[$(date)] $1\033[0m"
+        }
+
+        LOG_INFO "Pulling Vercel environment ..."
         vercel pull --yes --environment=preview --token=$VERCEL_TOKEN 2>&1
         if [ $? -ne 0 ]; then
-          echo "[$(date)] Failed to pull Vercel environment"
+          LOG_ERROR "Failed to pull Vercel environment."
           exit 1
         fi
 
+        LOG_INFO "Building Vercel project ..."
         vercel build 2>&1
         if [ $? -ne 0 ]; then
-          echo "[$(date)] Failed to build Vercel project"
+          LOG_ERROR "Failed to build Vercel project."
           exit 1
         fi
 
+        LOG_INFO "Deploying Vercel project ..."
         url=$(vercel deploy --token $VERCEL_TOKEN --prebuilt)
         exit_code=$?
         if [ $exit_code -ne 0 ]; then
-          echo "[$(date)] Failed to deploy Vercel project"
+          LOG_ERROR "Failed to deploy Vercel project."
           exit 1
         fi
 
