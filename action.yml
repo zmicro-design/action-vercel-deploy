@@ -82,13 +82,14 @@ runs:
         echo "preview-url=$url" >> $GITHUB_OUTPUT
 
     - name: Commit PR
-      uses: actions/github-script@v6
+      uses: actions/github-script@v7
       with:
         script: |
-          console.log(JSON.stringify(context, null, 2))
-          
+          // console.log(JSON.stringify(context, null, 2))
+
           // check if it's a PR
           if (context.ref !== 'refs/pull/${{ context.issue.number }}/merge') {
+            console.log('Not a PR, skipping commit.')
             return
           }
 
