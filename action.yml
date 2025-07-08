@@ -80,3 +80,22 @@ runs:
         fi
 
         echo "preview-url=$url" >> $GITHUB_OUTPUT
+
+    - name: Commit PR
+      uses: actions/github-script@v6
+      with:
+        script: |
+          console.log(JSON.stringify(context, null, 2))
+          
+          // check if it's a PR
+          if (context.ref !== 'refs/pull/${{ context.issue.number }}/merge') {
+            return
+          }
+
+          // create comment
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: `Preview deployed to: ${{ steps.vercel-deploy.outputs.preview-url }}`
+          })
