@@ -1,4 +1,4 @@
-# GitHub Action to Docker Build
+# GitHub Action to Vercel Deploy
 
 ![https://github.com/zmicro-design/action-vercel-deploy](https://img.shields.io/github/v/release/zmicro-design/action-vercel-deploy)
 ![https://github.com/zmicro-design/action-vercel-deploy](https://github.com/zmicro-design/action-vercel-deploy/workflows//Publish/badge.svg)
