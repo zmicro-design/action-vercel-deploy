@@ -84,7 +84,7 @@ runs:
         if [ -n "$VERCEL_ENVIRONMENT" ]; then
           PULL_ARGS="$PULL_ARGS --environment=$VERCEL_ENVIRONMENT"
         fi
-        if [ -n "$VERCEL_DEBUG" ]; then
+        if [ "$VERCEL_DEBUG" = "true" ]; then
           PULL_ARGS="$PULL_ARGS --debug"
         fi
         if [ -n "$VERCEL_GIT_BRANCH" ]; then
@@ -92,12 +92,12 @@ runs:
         fi
 
         ###### BUILD ARGS ######
-        if [ -n "$VERCEL_DEBUG" ]; then
+        if [ "$VERCEL_DEBUG" = "true" ]; then
           BUILD_ARGS="$BUILD_ARGS --debug"
         fi
 
         ###### DEPLOY ARGS ######
-        if [ -n "$VERCEL_DEBUG" ]; then
+        if [ "$VERCEL_DEBUG" = "true" ]; then
           DEPLOY_ARGS="$DEPLOY_ARGS --debug"
         fi
         if [ -n "$VERCEL_DEPLOY_ARCHIVE" ]; then
