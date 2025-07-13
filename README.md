@@ -15,6 +15,7 @@
 | environment | false | preview | vercel deployment environment |
 | git-branch | false | -       | vercel git branch for pulling |
 | deploy-archive | false | -       | vercel deploy to compress the deployment code into an archive before uploading it |
+| debug | false | false   | enable debug mode for vercel deployment |
 
 #### Outputs
 
@@ -44,6 +45,7 @@ jobs:
           environment: preview
           git-branch: ${{ github.head_ref || github.ref_name }}
           deploy-archive: true
+          debug: ${{ secrets.ACTIONS_STEP_DEBUG || false }}
       
       - name: Get Preview URL
         run: echo "Preview URL: ${{ steps.vercel-deploy.outputs.preview-url }}"

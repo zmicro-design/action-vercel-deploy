@@ -25,6 +25,10 @@ inputs:
   deploy-archive:
     required: false
     description: "vercel deploy to compress the deployment code into an archive before uploading it"
+  debug:
+    required: false
+    description: "enable debug mode for vercel deployment"
+    default: false
 
 outputs:
   preview-url:
@@ -60,7 +64,7 @@ runs:
         VERCEL_ORG_ID: ${{ inputs.org-id }}
         VERCEL_PROJECT_ID: ${{ inputs.project-id }}
         VERCEL_ENVIRONMENT: ${{ inputs.environment }}
-        VERCEL_DEBUG: ${{ secrets.ACTIONS_STEP_DEBUG }}
+        VERCEL_DEBUG: ${{ inputs.debug }}
         VERCEL_GIT_BRANCH: ${{ inputs.git-branch }}
         VERCEL_DEPLOY_ARCHIVE: ${{ inputs.deploy-archive }}
       run: |
