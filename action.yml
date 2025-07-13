@@ -14,6 +14,17 @@ inputs:
   project-id:
     required: false
     description: "vercel project id. See project settings page -> General -> Project ID"
+  environment:
+    required: false
+    description: "vercel deployment environment"
+    default: preview
+  git-branch:
+    required: false
+    description: "vercel git branch for pulling"
+    # default: ${{ github.head_ref || github.ref_name }}
+  deploy-archive:
+    required: false
+    description: "vercel deploy to compress the deployment code into an archive before uploading it"
 
 outputs:
   preview-url:
@@ -44,11 +55,15 @@ runs:
     - name: Vercel Deploy
       shell: bash
       id: deploy
+      env:
+        VERCEL_TOKEN: ${{ inputs.token }}
+        VERCEL_ORG_ID: ${{ inputs.org-id }}
+        VERCEL_PROJECT_ID: ${{ inputs.project-id }}
+        VERCEL_ENVIRONMENT: ${{ inputs.environment }}
+        VERCEL_DEBUG: ${{ secrets.ACTIONS_STEP_DEBUG }}
+        VERCEL_GIT_BRANCH: ${{ inputs.git-branch }}
+        VERCEL_DEPLOY_ARCHIVE: ${{ inputs.deploy-archive }}
       run: |
-        export VERCEL_TOKEN=${{ inputs.token }}
-        export VERCEL_ORG_ID=${{ inputs.org-id }}
-        export VERCEL_PROJECT_ID=${{ inputs.project-id }}
-
         LOG_INFO() {
           echo -e "\033[32m[$(date)] $1\033[0m"
         }
@@ -57,22 +72,50 @@ runs:
           echo -e "\033[31m[$(date)] $1\033[0m"
         }
 
+        PULL_ARGS="--yes --token=$VERCEL_TOKEN"
+        BUILD_ARGS="--yes --token=$VERCEL_TOKEN"
+        DEPLOY_ARGS="--yes --token=$VERCEL_TOKEN --prebuilt"
+
+        ###### PULL ARGS ######
+        if [ -n "$VERCEL_ENVIRONMENT" ]; then
+          PULL_ARGS="$PULL_ARGS --environment=$VERCEL_ENVIRONMENT"
+        fi
+        if [ -n "$VERCEL_DEBUG" ]; then
+          PULL_ARGS="$PULL_ARGS --debug"
+        fi
+        if [ -n "$VERCEL_GIT_BRANCH" ]; then
+          PULL_ARGS="$PULL_ARGS --git-branch=$VERCEL_GIT_BRANCH"
+        fi
+
+        ###### BUILD ARGS ######
+        if [ -n "$VERCEL_DEBUG" ]; then
+          BUILD_ARGS="$BUILD_ARGS --debug"
+        fi
+
+        ###### DEPLOY ARGS ######
+        if [ -n "$VERCEL_DEBUG" ]; then
+          DEPLOY_ARGS="$DEPLOY_ARGS --debug"
+        fi
+        if [ -n "$VERCEL_DEPLOY_ARCHIVE" ]; then
+          DEPLOY_ARGS="$DEPLOY_ARGS --archive=tgz"
+        fi
+
         LOG_INFO "Pulling Vercel environment ..."
-        vercel pull --yes --environment=preview --token=$VERCEL_TOKEN 2>&1
+        vercel pull $PULL_ARGS 2>&1
         if [ $? -ne 0 ]; then
           LOG_ERROR "Failed to pull Vercel environment."
           exit 1
         fi
 
         LOG_INFO "Building Vercel project ..."
-        vercel build 2>&1
+        vercel build $BUILD_ARGS 2>&1
         if [ $? -ne 0 ]; then
           LOG_ERROR "Failed to build Vercel project."
           exit 1
         fi
 
         LOG_INFO "Deploying Vercel project ..."
-        url=$(vercel deploy --token $VERCEL_TOKEN --prebuilt)
+        url=$(vercel deploy $DEPLOY_ARGS)
         exit_code=$?
         if [ $exit_code -ne 0 ]; then
           LOG_ERROR "Failed to deploy Vercel project."
